@@ -36,11 +36,6 @@ public class MemberService {
 
         memberFormCheck(memberFormDto, null);
 
-        System.out.println("멤버폼"+memberFormDto.toString());
-        System.out.println(memberFormDto.getUsername());
-        System.out.println(memberFormDto.getEmail());
-        System.out.println(memberFormDto.getPassword());
-
         // 비밀번호 NULL체크 후 암호화
         if (memberFormDto.getPassword() == null || memberFormDto.getPassword().isEmpty()) {
             throw new GlobalException("비밀번호는 필수 입력 항목입니다", "PASSWORD_REQUIRED");
@@ -48,10 +43,6 @@ public class MemberService {
         memberFormDto.setPassword(passwordEncoder.encode(memberFormDto.getPassword()));
 
         Member newMember = memberFormDto.convertToMember();
-        if(newMember.getUsername().equals("admin")){
-            newMember.addRole("ROLE_SUPERADMIN");
-            newMember.addRole("ROLE_ADMIN");
-        }
 
         // 사용자 저장
         Member savedMember = memberRepository.save(newMember);
@@ -65,9 +56,8 @@ public class MemberService {
 
 
 
-    /**
-     * memberFormCheck오버라이드
-     * */
+
+
     private void memberFormCheck(MemberFormDto memberFormDto, Long currentMemberId){
         // 수정 시에는 본인의 기존 데이터는 중복체크에서 제외
         if (currentMemberId != null) {

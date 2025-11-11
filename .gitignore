@@ -50,3 +50,4 @@ Thumbs.db
 
 # Gradle build cache
 .build-cache
+.gitignore

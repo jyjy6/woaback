@@ -8,6 +8,7 @@ import jy.WorkOutwithAgent.Member.Service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,44 +36,41 @@ class MemberServiceTest {
         // given
         MemberFormDto memberFormDto = createValidMemberFormDto();
         String encodedPassword = "encoded_password_123";
+        String rawPassword = memberFormDto.getPassword();
 
         when(memberRepository.existsByUsername(memberFormDto.getUsername())).thenReturn(false);
         when(memberRepository.existsByDisplayName(memberFormDto.getDisplayName())).thenReturn(false);
         when(memberRepository.existsByEmail(memberFormDto.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode(memberFormDto.getPassword())).thenReturn(encodedPassword);
-        when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
-            Member member = invocation.getArgument(0);
-            return Member.builder()
-                    .id(1L)
-                    .username(member.getUsername())
-                    .password(member.getPassword())
-                    .email(member.getEmail())
-                    .displayName(member.getDisplayName())
-                    .phone(member.getPhone())
-                    .sex(member.getSex())
-                    .age(member.getAge())
-                    .height(member.getHeight())
-                    .weight(member.getWeight())
-                    .privacyAccepted(member.isPrivacyAccepted())
-                    .termsAccepted(member.isTermsAccepted())
-                    .marketingAccepted(member.isMarketingAccepted())
-                    .build();
-        });
+        when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
+
+        // ArgumentCaptor 사용
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
 
         // when
-        Member savedMember = memberService.registerUser(memberFormDto);
+        memberService.registerUser(memberFormDto);  // 반환값 무시
 
         // then
-        assertNotNull(savedMember);
-        assertEquals(memberFormDto.getUsername(), savedMember.getUsername());
-        assertEquals(encodedPassword, savedMember.getPassword());
-        assertEquals(memberFormDto.getEmail(), savedMember.getEmail());
-        assertEquals(memberFormDto.getDisplayName(), savedMember.getDisplayName());
+        verify(memberRepository).save(memberCaptor.capture());
+        Member capturedMember = memberCaptor.getValue();
+
+        // 실제로 저장되는 Member 객체 검증
+        assertAll(
+                () -> assertNotNull(capturedMember),
+                () -> assertEquals(memberFormDto.getUsername(), capturedMember.getUsername()),
+                () -> assertEquals(encodedPassword, capturedMember.getPassword(), "비밀번호가 암호화되어 저장되어야 함"),
+                () -> assertEquals(memberFormDto.getEmail(), capturedMember.getEmail()),
+                () -> assertEquals(memberFormDto.getDisplayName(), capturedMember.getDisplayName()),
+                () -> assertEquals(memberFormDto.getPhone(), capturedMember.getPhone()),
+                () -> assertEquals(memberFormDto.getSex(), capturedMember.getSex()),
+                () -> assertEquals(memberFormDto.getAge(), capturedMember.getAge()),
+                () -> assertEquals(memberFormDto.getHeight(), capturedMember.getHeight()),
+                () -> assertEquals(memberFormDto.getWeight(), capturedMember.getWeight())
+        );
 
         verify(memberRepository).existsByUsername(memberFormDto.getUsername());
         verify(memberRepository).existsByDisplayName(memberFormDto.getDisplayName());
         verify(memberRepository).existsByEmail(memberFormDto.getEmail());
-        verify(passwordEncoder).encode(memberFormDto.getPassword());
+        verify(passwordEncoder).encode(rawPassword);
         verify(memberRepository).save(any(Member.class));
     }
 
@@ -195,12 +193,17 @@ class MemberServiceTest {
         when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
         when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+
+
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
         // when
-        Member savedMember = memberService.registerUser(memberFormDto);
+        memberService.registerUser(memberFormDto);
 
         // then
-        assertEquals(encodedPassword, savedMember.getPassword());
-        assertNotEquals(rawPassword, savedMember.getPassword());
+        verify(memberRepository).save(memberCaptor.capture());
+        Member capturedMember = memberCaptor.getValue();
+        assertEquals(encodedPassword, capturedMember.getPassword());
+        assertNotEquals(rawPassword, capturedMember.getPassword());
         verify(passwordEncoder).encode(rawPassword);
     }
 

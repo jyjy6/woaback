@@ -13,7 +13,6 @@ import jy.WorkOutwithAgent.Member.Service.CustomUserDetails;
 import jy.WorkOutwithAgent.Member.Service.CustomUserDetailsService;
 import jy.WorkOutwithAgent.Member.DTO.MemberDto;
 import jy.WorkOutwithAgent.Member.Entity.Member;
-import jy.WorkOutwithAgent.Redis.RedisService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;

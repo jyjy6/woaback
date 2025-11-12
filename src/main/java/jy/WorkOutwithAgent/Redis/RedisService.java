@@ -1,8 +1,12 @@
 package jy.WorkOutwithAgent.Redis;
 
+
 import jy.WorkOutwithAgent.GlobalErrorHandler.GlobalException;
+import jy.WorkOutwithAgent.Redis.RateLimit.RateLimit;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -10,11 +14,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.core.RedisCallback;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RedisService {
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -71,6 +74,10 @@ public class RedisService {
 
     public void leftPush(String key, Object value) {
         redisTemplate.opsForList().leftPush(key, value);
+    }
+
+    public void rightPush(String key, Object value) {
+        redisTemplate.opsForList().rightPush(key, value);
     }
 
     public void removeFromList(String key, long count, Object value) {
@@ -175,25 +182,26 @@ public class RedisService {
      * @return 요청 허용 여부
      */
     public boolean isAllowedFixedWindow(String key, long windowSizeInSeconds, int maxRequests) {
-        // 1. 현재 시간대를 기준으로 윈도우(시간 구간)를 계산
         long currentWindow = System.currentTimeMillis() / 1000 / windowSizeInSeconds;
         String windowKey = "rate_limit:fixed:" + key + ":" + currentWindow;
 
-        // 2. Redis의 INCR 명령어를 실행하여 값을 1 증가시키고, 그 결과를 받음
-        /*
-            Redis의 `INCR` 명령어(코드에서는 `increment()`)는 키가 없을 경우, 자동으로 키를 생성하고 값을 0으로 초기화한 뒤 1을 더해 최종적으로 1을
-            저장하고 반환합니다.
-         */
-        Long currentCount = redisTemplate.opsForValue().increment(windowKey);
+        log.info("=== Fixed Window Rate Limit ===");
+        log.info("Original Key: {}", key);
+        log.info("Window Key: {}", windowKey);
+        log.info("Current Window: {}", currentWindow);
+        log.info("Max Requests: {}", maxRequests);
 
-        // 3. 만약 카운트가 1이라면 (최초의 요청이라면)
+        Long currentCount = redisTemplate.opsForValue().increment(windowKey);
+        log.info("Current Count after increment: {}", currentCount);
+
         if (currentCount == 1) {
-            // 4. 이 키에 만료시간(TTL)을 설정
             redisTemplate.expire(windowKey, windowSizeInSeconds, TimeUnit.SECONDS);
+            log.info("Set expiry for key: {} with {} seconds", windowKey, windowSizeInSeconds);
         }
 
-        // 5. 현재 카운트가 최대 요청 수보다 작거나 같은지 확인하여 결과 반환
-        return currentCount <= maxRequests;
+        boolean allowed = currentCount <= maxRequests;
+        log.info("Request allowed: {}", allowed);
+        return allowed;
     }
 
     /**
@@ -270,17 +278,78 @@ public class RedisService {
 
     /**
      * 현재 Rate Limit 상태 조회
-     * @param key 식별자
+     * @param key 전체 키 (이미 prefix와 identifier가 포함된 키)
      * @param windowSizeInSeconds 시간 창 크기
      * @return 현재 요청 수
      */
-    public long getCurrentRequestCount(String key, long windowSizeInSeconds) {
-        long now = System.currentTimeMillis();
-        long windowStart = now - (windowSizeInSeconds * 1000);
-        String slidingKey = "rate_limit:sliding:" + key;
+    public long getCurrentRequestCount(String key, long windowSizeInSeconds, RateLimit.RateLimitType type) {
+        log.info("=== getCurrentRequestCount 호출 ===");
+        log.info("Input Key: {}", key);
+        log.info("Window Size: {} seconds", windowSizeInSeconds);
+        log.info("Type: {}", type);
+        
+        switch (type) {
+            case FIXED_WINDOW:
+                String fixedKey;
+                if (key.startsWith("rate_limit:fixed:")) {
+                    // 이미 완전한 Redis 키가 전달된 경우 (타임스탬프 포함)
+                    fixedKey = key;
+                    log.info("Using provided full Redis key: {}", fixedKey);
+                } else {
+                    // 기본 키만 전달된 경우 현재 윈도우로 생성
+                    long currentWindow = System.currentTimeMillis() / 1000 / windowSizeInSeconds;
+                    fixedKey = "rate_limit:fixed:" + key + ":" + currentWindow;
+                    log.info("Generated Fixed Window Key with current window: {}", fixedKey);
+                }
+                
+                Object value = redisTemplate.opsForValue().get(fixedKey);
+                log.info("Retrieved value from Redis: {}", value);
+                
+                if (value instanceof Integer) {
+                    long result = ((Integer) value).longValue();
+                    log.info("Returning Integer value: {}", result);
+                    return result;
+                } else if (value instanceof Long) {
+                    log.info("Returning Long value: {}", value);
+                    return (Long) value;
+                } else if (value instanceof String) {
+                    try {
+                        long result = Long.parseLong((String) value);
+                        log.info("Returning parsed String value: {}", result);
+                        return result;
+                    } catch (NumberFormatException e) {
+                        log.warn("숫자 변환 실패: {}", value);
+                        return 0L;
+                    }
+                }
+                log.info("No value found, returning 0");
+                return 0L;
 
-        Long count = redisTemplate.opsForZSet().count(slidingKey, windowStart, now);
-        return count != null ? count : 0;
+            case SLIDING_WINDOW:
+                long now = System.currentTimeMillis();
+                long windowStart = now - (windowSizeInSeconds * 1000);
+                String slidingKey = "rate_limit:sliding:" + key;
+                log.info("Generated Sliding Window Key: {}", slidingKey);
+                
+                Long slidingCount = redisTemplate.opsForZSet().count(slidingKey, windowStart, now);
+                log.info("Sliding Window count: {}", slidingCount);
+                return slidingCount != null ? slidingCount : 0;
+
+            case TOKEN_BUCKET:
+                String bucketKey = "rate_limit:bucket:" + key;
+                log.info("Generated Token Bucket Key: {}", bucketKey);
+                
+                Object tokens = redisTemplate.opsForHash().get(bucketKey, "tokens");
+                log.info("Token Bucket tokens: {}", tokens);
+                if (tokens instanceof Number) {
+                    return ((Number) tokens).longValue();
+                }
+                return 0L;
+
+            default:
+                log.warn("Unknown rate limit type: {}", type);
+                return 0;
+        }
     }
 
     /**
@@ -292,5 +361,22 @@ public class RedisService {
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
+    }
+
+    // RedisService 메서드
+    public boolean deleteSpecificKey(String key) {
+        log.info("특정 키 삭제 시도: {}", key);
+
+        // 키가 존재하는지 먼저 확인
+        if (!redisTemplate.hasKey(key)) {
+            log.warn("키가 존재하지 않음: {}", key);
+            return false;
+        }
+
+        // 키 삭제
+        Boolean deleted = redisTemplate.delete(key);
+        log.info("키 삭제 결과: {}, 키: {}", deleted, key);
+
+        return Boolean.TRUE.equals(deleted);
     }
 }

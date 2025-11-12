@@ -9,4 +9,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class MealService {
+    /**
+     * 먹은거 입력, 바인딩
+     *
+     * */
 }

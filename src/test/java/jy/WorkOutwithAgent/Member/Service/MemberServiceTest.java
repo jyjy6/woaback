@@ -1,10 +1,9 @@
-package jy.WorkOutwithAgent.Member;
+package jy.WorkOutwithAgent.Member.Service;
 
 import jy.WorkOutwithAgent.GlobalErrorHandler.GlobalException;
 import jy.WorkOutwithAgent.Member.DTO.MemberFormDto;
 import jy.WorkOutwithAgent.Member.Entity.Member;
 import jy.WorkOutwithAgent.Member.Repository.MemberRepository;
-import jy.WorkOutwithAgent.Member.Service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

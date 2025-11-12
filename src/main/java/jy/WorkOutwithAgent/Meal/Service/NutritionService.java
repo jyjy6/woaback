@@ -31,17 +31,17 @@ public class NutritionService {
         List<Meal> todayMeals = mealRepository.findTodayMeals(memberId);
         List<Workout> todayWorkouts = workoutRepository.findTodayWorkouts(memberId);
 
-        double totalCalories = todayMeals.stream()
+        Double totalCalories = todayMeals.stream()
                 .mapToDouble(Meal::getCalories).sum();
-        double totalProtein = todayMeals.stream()
+        Double totalProtein = todayMeals.stream()
                 .mapToDouble(Meal::getProtein).sum();
-        double totalCarbs = todayMeals.stream()
+        Double totalCarbs = todayMeals.stream()
                 .mapToDouble(Meal::getCarbohydrates).sum();
-        double totalFat = todayMeals.stream()
+        Double totalFat = todayMeals.stream()
                 .mapToDouble(Meal::getFat).sum();
 
-        double burnedCalories = estimateWorkoutCalories(member, todayWorkouts);
-        double recommendedCalories = calculateRecommendedCalories(member);
+        Double burnedCalories = estimateWorkoutCalories(member, todayWorkouts);
+        Double recommendedCalories = calculateRecommendedCalories(member);
         MacroRatioDto recommendedRatio = calculateRecommendedMacros(member);
 
         return new NutritionSummaryDto(
@@ -73,26 +73,26 @@ public class NutritionService {
  *
  * */
 
-    public double estimateWorkoutCalories(Member member, List<Workout> todayWorkouts) {
+    public Double estimateWorkoutCalories(Member member, List<Workout> todayWorkouts) {
         if (todayWorkouts == null || todayWorkouts.isEmpty()) return 0.0;
 
-        double totalCalories = 0.0;
-        double weight = member.getWeight(); // kg 기준
+        Double totalCalories = 0.0;
+        Double weight = member.getWeight(); // kg 기준
 
         for (Workout workout : todayWorkouts) {
-            double durationHours = (workout.getDurationMinutes() != null ? workout.getDurationMinutes() : 0) / 60.0;
+            Double durationHours = (workout.getDurationMinutes() != null ? workout.getDurationMinutes() : 0) / 60.0;
             if (durationHours <= 0) continue;
 
-            double met = estimateMET(workout.getWorkoutType(), workout.getIntensity());
+            Double met = estimateMET(workout.getWorkoutType(), workout.getIntensity());
             totalCalories += met * weight * durationHours * 1.05;
         }
 
         return Math.round(totalCalories * 10) / 10.0; // 소수점 1자리 반올림
     }
 
-    private double estimateMET(WorkoutType type, Intensity intensity) {
+    private Double estimateMET(WorkoutType type, Intensity intensity) {
         int level = intensity.getValue(); // 0~10
-        double baseMET;
+        Double baseMET;
 
         switch (type) {
             case CARDIO:
@@ -125,21 +125,21 @@ public class NutritionService {
      * (기본 1.2로 둡니다.)
      *
      * */
-    public double calculateRecommendedCalories(Member member){
+    public Double calculateRecommendedCalories(Member member){
         if (member == null || member.getWeight() == null || member.getHeight() == null || member.getAge() == null) {
             throw new IllegalArgumentException("Member information incomplete for calorie calculation.");
         }
 
-        double weight = member.getWeight();  // kg
-        double height = member.getHeight();  // cm
-        double age = member.getAge();
+        Double weight = member.getWeight();  // kg
+        Double height = member.getHeight();  // cm
+        Integer age = member.getAge();
         String sex = member.getSex();
 
         // 기본 활동 계수 (운동 수준 필드가 없다면 1.2로 둠)
-        double activityFactor = 1.2;
+        Double activityFactor = 1.2;
 
         // 1️⃣ BMR 계산
-        double bmr;
+        Double bmr;
         if ("male".equalsIgnoreCase(sex) || "남".equalsIgnoreCase(sex) || "남자".equalsIgnoreCase(sex)) {
             bmr = 10 * weight + 6.25 * height - 5 * age + 5;
         } else if ("female".equalsIgnoreCase(sex) || "여".equalsIgnoreCase(sex) || "여자".equalsIgnoreCase(sex)) {
@@ -149,24 +149,24 @@ public class NutritionService {
             bmr = 10 * weight + 6.25 * height - 5 * age;
         }
         // 2️⃣ 활동계수 반영 (TDEE)
-        double recommendedCalories = bmr * activityFactor;
+        Double recommendedCalories = bmr * activityFactor;
         // 소수점 한 자리로 반올림
         return Math.round(recommendedCalories * 10) / 10.0;
     }
 
     public MacroRatioDto calculateRecommendedMacros(Member member) {
         // 기본 비율 (%)
-        double proteinRatio = 0.2;
-        double carbRatio = 0.5;
-        double fatRatio = 0.3;
+        Double proteinRatio = 0.2;
+        Double carbRatio = 0.5;
+        Double fatRatio = 0.3;
 
         // 하루 권장 칼로리 계산
-        double recommendedCalories = calculateRecommendedCalories(member);
+        Double recommendedCalories = calculateRecommendedCalories(member);
 
         // 각 매크로별 g 계산 (1g = protein 4kcal, carb 4kcal, fat 9kcal)
-        double proteinGrams = (recommendedCalories * proteinRatio) / 4.0;
-        double carbGrams = (recommendedCalories * carbRatio) / 4.0;
-        double fatGrams = (recommendedCalories * fatRatio) / 9.0;
+        Double proteinGrams = (recommendedCalories * proteinRatio) / 4.0;
+        Double carbGrams = (recommendedCalories * carbRatio) / 4.0;
+        Double fatGrams = (recommendedCalories * fatRatio) / 9.0;
 
         return new MacroRatioDto(proteinGrams, carbGrams, fatGrams);
     }

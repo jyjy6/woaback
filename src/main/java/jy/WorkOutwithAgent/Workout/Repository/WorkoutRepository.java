@@ -16,4 +16,6 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
     @Query("SELECT w FROM Workout w WHERE w.member.id = :memberId AND DATE(w.workoutDate) = CURRENT_DATE")
     List<Workout> findTodayWorkouts(@Param("memberId") Long memberId);
 
+    List<Workout> findByMember_IdAndWorkoutDateBetween(Long memberId, java.time.LocalDateTime startDateTime, java.time.LocalDateTime endDateTime);
+
 }

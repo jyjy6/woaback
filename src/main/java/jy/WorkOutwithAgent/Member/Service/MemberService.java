@@ -58,6 +58,12 @@ public class MemberService {
 
 
 
+    /**
+     * 회원가입 폼 아이디/닉네임/이메일 중복 체크.
+     * @param memberFormDto 회원가입/수정 폼
+     * @param currentMemberId 값이 NULL일시 회원"가입", 값이 있을시 회원"수정"
+     * @return 중복일시 GlobalExecption 던짐
+     * */
     private void memberFormCheck(MemberFormDto memberFormDto, Long currentMemberId){
         // 수정 시에는 본인의 기존 데이터는 중복체크에서 제외
         if (currentMemberId != null) {

@@ -2,24 +2,24 @@ package jy.WorkOutwithAgent.Meal.Controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jy.WorkOutwithAgent.Auth.Util.AuthUtils;
-import jy.WorkOutwithAgent.GlobalErrorHandler.GlobalException;
+import jy.WorkOutwithAgent.Meal.DTO.MealRequestDto;
+import jy.WorkOutwithAgent.Meal.DTO.MealResponseDto;
 import jy.WorkOutwithAgent.Meal.DTO.NutritionSummaryDto;
+import jy.WorkOutwithAgent.Meal.Entity.Meal;
+import jy.WorkOutwithAgent.Meal.Service.MealService;
 import jy.WorkOutwithAgent.Meal.Service.NutritionService;
 import jy.WorkOutwithAgent.Member.Service.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MealController {
     private final NutritionService nutritionService;
+    private final MealService mealService;
 
 
     @Operation(summary = "오늘의 영양 정보 요약", description = "사용자의 ID를 기반으로 오늘 섭취한 총 칼로리, 소모 칼로리 및 주요 영양소(단백질, 탄수화물, 지방)와 권장 섭취량을 요약하여 제공합니다.")
@@ -43,5 +44,22 @@ public class MealController {
     }
 
 
+    @Operation(summary = "식사 기록 생성", description = "새로운 식사 기록을 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "식사 기록 생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 요청(로그인 필요)")
+    })
+    @PostMapping
+    public ResponseEntity<MealResponseDto> createMeal(
+            @RequestBody MealRequestDto mealRequestDto,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        AuthUtils.loginCheck(userDetails);
+        Meal createdMeal = mealService.createMeal(mealRequestDto, userDetails);
+        MealResponseDto responseDto = MealResponseDto.fromEntity(createdMeal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
 }
 

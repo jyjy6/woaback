@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jy.WorkOutwithAgent.Meal.DTO.MealDto;
 import jy.WorkOutwithAgent.Member.Entity.Member;
-import jy.WorkOutwithAgent.Workout.DTO.WorkoutDto;
+import jy.WorkOutwithAgent.Workout.DTO.WorkoutRequestDto;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -73,7 +73,7 @@ public class MemberDto {
     private List<MealDto> meals;
 
     @Schema(description = "회원이 기록한 운동 정보 목록", nullable = true)
-    private List<WorkoutDto> workouts;
+    private List<WorkoutRequestDto> workouts;
 
 
     public static MemberDto convertToDetailMemberDto(Member member) {

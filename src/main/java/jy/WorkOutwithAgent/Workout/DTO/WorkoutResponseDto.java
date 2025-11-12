@@ -2,6 +2,7 @@ package jy.WorkOutwithAgent.Workout.DTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jy.WorkOutwithAgent.Workout.Entity.Workout;
+import jy.WorkOutwithAgent.Workout.Entity.enums.Intensity;
 import jy.WorkOutwithAgent.Workout.Entity.enums.WorkoutType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class WorkoutDto {
+public class WorkoutResponseDto {
     @Schema(description = "운동 고유 식별자", example = "1")
     private Long id;
     @Schema(description = "운동을 한 회원의 고유식별자", example = "1")
@@ -37,11 +38,13 @@ public class WorkoutDto {
     private Double distanceKm;
     @Schema(description = "운동한 날짜", example = "2025-11-11")
     private LocalDateTime workoutDate;
+    @Schema(description = "강도", example = "")
+    private Intensity intensity;
     @Schema(description = "메모", example = "빡운동 했다.")
     private String notes;
 
-    public static WorkoutDto fromEntity(Workout workout) {
-        return WorkoutDto.builder()
+    public static WorkoutResponseDto fromEntity(Workout workout) {
+        return WorkoutResponseDto.builder()
                 .id(workout.getId())
                 .memberId(workout.getMember().getId()) // Avoid circular reference
                 .workoutType(workout.getWorkoutType())
@@ -52,6 +55,7 @@ public class WorkoutDto {
                 .durationMinutes(workout.getDurationMinutes())
                 .distanceKm(workout.getDistanceKm())
                 .workoutDate(workout.getWorkoutDate())
+                .intensity(workout.getIntensity())
                 .notes(workout.getNotes())
                 .build();
     }

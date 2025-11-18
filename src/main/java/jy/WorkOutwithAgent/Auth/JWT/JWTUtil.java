@@ -13,6 +13,8 @@ import jy.WorkOutwithAgent.Member.Service.CustomUserDetails;
 import jy.WorkOutwithAgent.Member.Service.CustomUserDetailsService;
 import jy.WorkOutwithAgent.Member.DTO.MemberDto;
 import jy.WorkOutwithAgent.Member.Entity.Member;
+import jy.WorkOutwithAgent.Redis.RedisService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class JWTUtil {
 
@@ -176,10 +179,10 @@ public class JWTUtil {
             final Date expiration = extractClaims(token).getExpiration();
             return expiration.before(new Date());
         } catch (ExpiredJwtException e) {
-            System.out.println("토큰이 만료되었습니다: " + e.getMessage());
+            log.debug("토큰이 만료되었습니다: {}", e.getMessage());
             return true;
         } catch (Exception e) {
-            System.out.println("토큰 검증 중 오류 발생: " + e.getMessage());
+            log.warn("토큰 검증 중 오류 발생: {}", e.getMessage());
             return true; // 오류 났으면 만료된 걸로 간주
         }
     }

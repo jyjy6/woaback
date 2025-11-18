@@ -104,6 +104,12 @@ public class JWTFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 } else {
+                    // CORS 헤더 추가 (프론트엔드가 응답을 받을 수 있도록)
+                    response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+                    response.setHeader("Access-Control-Allow-Credentials", "true");
+                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                    response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+                    
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json; charset=UTF-8");
                     response.getWriter().write("{\"message\": \"Access token expired\"}");
@@ -112,11 +118,27 @@ public class JWTFilter extends OncePerRequestFilter {
             } catch (Exception e) {
                 log.info("JWT 검증 실패: {}", e.getMessage());
                 e.printStackTrace();
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                
+                // CORS 헤더 추가
+                response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+                response.setHeader("Access-Control-Allow-Credentials", "true");
+                response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+                
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json; charset=UTF-8");
+                response.getWriter().write("{\"message\": \"Invalid JWT token\"}");
                 return; // 필터 체인 종료
             }
         } else if (refreshJwt != null){
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "accessToken Is Null Refresh");
+            // CORS 헤더 추가
+            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write("{\"message\": \"accessToken Is Null Refresh\"}");
+            return;
         }
 
         filterChain.doFilter(request, response);

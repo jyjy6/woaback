@@ -18,4 +18,6 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
 
     List<Workout> findByMember_IdAndWorkoutDateBetween(Long memberId, java.time.LocalDateTime startDateTime, java.time.LocalDateTime endDateTime);
 
+    List<Workout> findByMember_UsernameAndWorkoutDateBetween(String username, java.time.LocalDateTime startDateTime, java.time.LocalDateTime endDateTime);
+
 }

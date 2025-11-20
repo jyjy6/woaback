@@ -13,6 +13,8 @@ import jy.WorkOutwithAgent.AI.AssistantModels.Assistant;
 import jy.WorkOutwithAgent.AI.AssistantModels.RagAssistant;
 import jy.WorkOutwithAgent.AI.AssistantModels.StreamingAssistant;
 import jy.WorkOutwithAgent.AI.Tools.MemberSearchTools;
+import jy.WorkOutwithAgent.AI.Tools.UtilTools;
+import jy.WorkOutwithAgent.AI.Tools.WorkoutAndMealTools;
 import jy.WorkOutwithAgent.GlobalErrorHandler.GlobalException;
 import jy.WorkOutwithAgent.Redis.RedisChatMemoryStore;
 import lombok.RequiredArgsConstructor;
@@ -34,18 +36,17 @@ public class LangChainConfig {
     private final MemberSearchTools memberSearchTools;
 
 
-
-
-
     /**
      * Phase 2.2: 도구(Tools) 및 함수 호출용 Assistant
      * - Calculator.java 도구를 AI가 사용할 수 있도록 설정
      * - AI가 계산이 필요하다고 판단하면 Calculator의 메서드를 자동으로 호출
      */
     @Bean("assistantWithTools")
-    public Assistant assistantWithTools(MemberSearchTools memberSearchTools) {
+    public Assistant assistantWithTools(MemberSearchTools memberSearchTools,
+                                        WorkoutAndMealTools workoutAndMealTools,
+                                        UtilTools utilTools) {
         if (apiKey == null) {
-            throw new IllegalStateException("GEMINI_API_KEY not set in environment variables");
+            throw new GlobalException("GEMINI_API_KEY_ERROR","GEMINI_API_KEY not set in environment variables", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         RedisChatMemoryStore store = new RedisChatMemoryStore(stringRedisTemplate);
@@ -57,7 +58,7 @@ public class LangChainConfig {
 
         return AiServices.builder(Assistant.class)
                 .chatLanguageModel(model)
-                .tools(memberSearchTools)
+                .tools(memberSearchTools, workoutAndMealTools, utilTools)
                 .chatMemoryProvider(userId -> MessageWindowChatMemory.builder()
                         .id(userId)
                         .maxMessages(20)
@@ -72,9 +73,11 @@ public class LangChainConfig {
      */
 
     @Bean("assistantWithToolsForAdmin")
-    public Assistant assistantWithToolsForAdmin(MemberSearchTools memberSearchTools) {
+    public Assistant assistantWithToolsForAdmin(MemberSearchTools memberSearchTools,
+                                                WorkoutAndMealTools workoutAndMealTools,
+                                                UtilTools utilTools) {
         if (apiKey == null) {
-            throw new IllegalStateException("GEMINI_API_KEY not set in environment variables");
+            throw new GlobalException("GEMINI_API_KEY_ERROR","GEMINI_API_KEY not set in environment variables", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         RedisChatMemoryStore store = new RedisChatMemoryStore(stringRedisTemplate);
@@ -86,7 +89,7 @@ public class LangChainConfig {
 
         return AiServices.builder(Assistant.class)
                 .chatLanguageModel(model)
-                .tools(memberSearchTools)
+                .tools(memberSearchTools, workoutAndMealTools, utilTools)
                 .chatMemoryProvider(userId -> MessageWindowChatMemory.builder()
                         .id(userId)
                         .maxMessages(20)
@@ -103,7 +106,7 @@ public class LangChainConfig {
      * - TokenStream을 통해 실시간 토큰 생성
      */
     @Bean
-    public StreamingAssistant streamingAssistant(MemberSearchTools memberSearchTools) {
+    public StreamingAssistant streamingAssistant() {
         if (apiKey == null) {
             throw new GlobalException("GEMINI_API_KEY_ERROR","GEMINI_API_KEY not set in environment variables", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -155,7 +158,6 @@ public class LangChainConfig {
                 .modelName(modelName)
                 .build();
     }
-
     /**
      * Phase 2.1-C: RAG Assistant Bean
      *

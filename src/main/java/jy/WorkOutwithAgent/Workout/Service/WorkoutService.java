@@ -26,6 +26,25 @@ public class WorkoutService {
     private final MemberRepository memberRepository;
 
 
+
+    /**
+     * @params 회원 Id(식별자)
+     * @params 오늘 날짜
+     * 단 하루의 workout 들을 찾을 수 있는 함수
+     * */
+    public List<WorkoutResponseDto> findWorkout(Long memberId, LocalDateTime startOfDay, LocalDateTime endOfDay){
+
+        List<Workout> workouts = workoutRepository.findByMember_IdAndWorkoutDateBetween(memberId, startOfDay, endOfDay);
+        return workouts.stream()
+                .map(WorkoutResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * @params 회원 Id(식별자)
+     * @params 오늘 날짜
+     * 단 하루의 workout 들을 찾을 수 있는 함수
+     * */
     public List<WorkoutResponseDto> findWorkout(Long memberId, LocalDate workoutDate){
         LocalDateTime startOfDay = workoutDate.atStartOfDay();
         LocalDateTime endOfDay = workoutDate.plusDays(1).atStartOfDay().minusNanos(1);

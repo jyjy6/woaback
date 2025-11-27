@@ -74,4 +74,27 @@ public class WorkoutController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdWorkoutDto);
     }
 
+
+    @Operation(
+            summary = "최근 운동 목록 조회",
+            description = "사용자의 최근 운동 기록을 조회합니다. 최신순으로 정렬됩니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "최근 운동 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 요청(로그인 필요)")
+    })
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<WorkoutResponseDto>> getRecentWorkouts(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Parameter(description = "조회할 최근 운동 기록 개수", example = "1")
+            @RequestParam(value = "limit", defaultValue = "1")
+            int limit
+    ) {
+
+        List<WorkoutResponseDto> recentWorkouts = workoutService.recentWorkouts(customUserDetails.getId(), limit);
+        return ResponseEntity.ok(recentWorkouts);
+    }
+
 }

@@ -2,10 +2,12 @@ package jy.WorkOutwithAgent.Workout.Repository;
 
 
 import jy.WorkOutwithAgent.Workout.Entity.Workout;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 
 import java.util.List;
 
@@ -20,4 +22,5 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
 
     List<Workout> findByMember_UsernameAndWorkoutDateBetween(String username, java.time.LocalDateTime startDateTime, java.time.LocalDateTime endDateTime);
 
+    List<Workout> findByMemberIdOrderByWorkoutDateDesc(Long memberId, Pageable pageable);
 }

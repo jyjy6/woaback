@@ -15,11 +15,14 @@ import jy.WorkOutwithAgent.Meal.Entity.Meal;
 import jy.WorkOutwithAgent.Meal.Service.MealService;
 import jy.WorkOutwithAgent.Meal.Service.NutritionService;
 import jy.WorkOutwithAgent.Member.Service.CustomUserDetails;
+import jy.WorkOutwithAgent.Workout.DTO.WorkoutResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -61,5 +64,21 @@ public class MealController {
         MealResponseDto responseDto = MealResponseDto.fromEntity(createdMeal);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<MealResponseDto>> getRecentMeals(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Parameter(description = "조회할 최근 식사 개수", example = "1")
+            @RequestParam(value = "limit", defaultValue = "1")
+            int limit
+    ) {
+
+        List<MealResponseDto> recentMeals = mealService.recentMeals(customUserDetails.getId(), limit);
+        return ResponseEntity.ok(recentMeals);
+    }
+
+
+
 }
 

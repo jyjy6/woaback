@@ -33,10 +33,6 @@ public class AIController {
         String message = request.get("message");
         log.info("Admin chat message from {}: {}", customUserDetails.getUsername(), message);
 
-        if (message == null || message.trim().isEmpty()) {
-            throw new GlobalException("메시지가 필요합니다.", "MESSAGE_REQUIRED", HttpStatus.BAD_REQUEST);
-        }
-
         return assistantWithTools.chat(customUserDetails.getUsername(), message);
     }
 }

@@ -11,6 +11,8 @@ import jy.WorkOutwithAgent.Workout.DTO.WorkoutResponseDto;
 import jy.WorkOutwithAgent.Workout.Repository.WorkoutRepository;
 import jy.WorkOutwithAgent.Workout.Entity.Workout;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class WorkoutService {
      * @params 오늘 날짜
      * 단 하루의 workout 들을 찾을 수 있는 함수
      * */
+    @Transactional(readOnly = true)
     public List<WorkoutResponseDto> findWorkout(Long memberId, LocalDateTime startOfDay, LocalDateTime endOfDay){
 
         List<Workout> workouts = workoutRepository.findByMember_IdAndWorkoutDateBetween(memberId, startOfDay, endOfDay);
@@ -45,6 +48,7 @@ public class WorkoutService {
      * @params 오늘 날짜
      * 단 하루의 workout 들을 찾을 수 있는 함수
      * */
+    @Transactional(readOnly = true)
     public List<WorkoutResponseDto> findWorkout(Long memberId, LocalDate workoutDate){
         LocalDateTime startOfDay = workoutDate.atStartOfDay();
         LocalDateTime endOfDay = workoutDate.plusDays(1).atStartOfDay().minusNanos(1);
@@ -77,4 +81,15 @@ public class WorkoutService {
 
         return workoutRepository.save(workout);
     }
+
+    @Transactional(readOnly = true)
+    public List<WorkoutResponseDto> recentWorkouts(Long memberId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Workout> workouts = workoutRepository.findByMemberIdOrderByWorkoutDateDesc(memberId, pageable);
+
+        return workouts.stream()
+                .map(WorkoutResponseDto::fromEntity)
+                .toList();
+    }
+
 }

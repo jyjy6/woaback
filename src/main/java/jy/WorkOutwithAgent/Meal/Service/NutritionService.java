@@ -14,6 +14,7 @@ import jy.WorkOutwithAgent.Workout.Repository.WorkoutRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class NutritionService {
     private final WorkoutRepository workoutRepository;
     private final MealRepository mealRepository;
 
+    @Transactional(readOnly = true)
     public NutritionSummaryDto getTodaySummary(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new GlobalException("사용자를 찾을 수 없습니다", "MEMBER_NOT_FOUND", HttpStatus.NOT_FOUND));
         List<Meal> todayMeals = mealRepository.findTodayMeals(memberId);

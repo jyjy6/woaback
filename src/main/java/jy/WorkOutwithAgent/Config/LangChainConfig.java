@@ -33,7 +33,7 @@ public class LangChainConfig {
     String apiKey;
 
     private final StringRedisTemplate stringRedisTemplate;
-    private final MemberSearchTools memberSearchTools;
+
 
 
     /**
@@ -83,13 +83,13 @@ public class LangChainConfig {
         RedisChatMemoryStore store = new RedisChatMemoryStore(stringRedisTemplate);
         GoogleAiGeminiChatModel model = GoogleAiGeminiChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gemini-2.5-flash")
+                .modelName("gemini-2.5-pro")
                 .temperature(0.7)
                 .build();
 
         return AiServices.builder(Assistant.class)
                 .chatLanguageModel(model)
-                .tools(memberSearchTools, workoutAndMealTools, utilTools)
+                .tools(workoutAndMealTools, memberSearchTools, utilTools)
                 .chatMemoryProvider(userId -> MessageWindowChatMemory.builder()
                         .id(userId)
                         .maxMessages(20)
@@ -114,7 +114,7 @@ public class LangChainConfig {
         RedisChatMemoryStore store = new RedisChatMemoryStore(stringRedisTemplate);
         GoogleAiGeminiStreamingChatModel streamingModel = GoogleAiGeminiStreamingChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gemini-2.5-flash")
+                .modelName("gemini-2.5-pro")
                 .temperature(0.7)
                 .build();
 

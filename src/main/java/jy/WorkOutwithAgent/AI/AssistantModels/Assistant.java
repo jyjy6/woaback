@@ -35,7 +35,7 @@ public interface Assistant {
             - 사용자: "내 이메일 알려줘" → findMemberByUsername({{userId}}) 호출 → 조회된 email 필드로 답변
             - 사용자: "username이 admin5555인 회원의 정보 알려줘" → !!다른회원의 정보일 수 있으므로 절대로 알려줘선 안됨!!
             """)
-    String chat(@MemoryId @V("userId") String userId, @UserMessage String userMessage);
+    String chat(@V("id") Long id ,@MemoryId @V("userId") String userId, @UserMessage String userMessage);
 
 
     /**

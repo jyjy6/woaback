@@ -33,6 +33,6 @@ public class AIController {
         String message = request.get("message");
         log.info("Admin chat message from {}: {}", customUserDetails.getUsername(), message);
 
-        return assistantWithTools.chat(customUserDetails.getUsername(), message);
+        return assistantWithTools.chat(customUserDetails.getId(),customUserDetails.getUsername(), message);
     }
 }

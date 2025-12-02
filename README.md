@@ -38,11 +38,15 @@ AI 처리 과정:
 
 ![AI Tools 실행 예시](src/main/resources/static/images/AIUsetools.jpg)
 
-### 2. 자연어 기반 운동 기록 조회
+### 2. 자연어 기반 운동 기록 조회 및 운동 추천
 
-복잡한 API 호출 없이 자연스러운 대화로 운동 기록을 확인할 수 있습니다.
+1. 복잡한 API 호출 없이 자연스러운 대화로 운동 기록을 확인할 수 있습니다.
 
 ![운동 기록 조회 예시](src/main/resources/static/images/AIChatList.jpg)
+
+2. 최근 운동을 고려하여 AI가 오늘의 운동을 추천해줍니다. 
+![최근 운동과 운동 추천 예시](src/main/resources/static/images/AIRecommend.jpg)
+
 
 ### 3. RAG (Retrieval Augmented Generation), VectorDB 예시
 
@@ -198,7 +202,6 @@ MessageWindowChatMemory.builder()
 
 - ✅ AI Tools 기반 자동 실행
 - ✅ 자연어 질의응답
-- ✅ 스트리밍 응답
 - ✅ RAG 기본 구조
 - 🚧 추가 AI Tools 개발
 - 🚧 프론트엔드 UI/UX 개선
@@ -206,3 +209,4 @@ MessageWindowChatMemory.builder()
 
 
 ## 👤 작성자
+정준영

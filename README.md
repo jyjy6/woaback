@@ -182,7 +182,10 @@ Authorization: Bearer {jwt-token}
 
 #### WorkoutAndMealTools
 
-- `findWorkoutsByUsername()`: 날짜 범위 내 운동 기록 조회
+- `findWorkoutsByUsernameForAI()`: 날짜 범위 내 운동 기록 조회
+- `getRecentWorkoutsForAI(@P("조회할 회원의 식별자(id)") Long memberId, @P("최근 N개의 운동 개수(limit)") int limit)` : 최근 운동내역 조회
+- `recentMealsForAI(@P("조회할 회원의 식별자(id)") Long memberId,
+  @P("최근 N개의 식사 개수(limit)") int limit) : 최근 식사내역 조회`
 
 ### Redis Chat Memory
 

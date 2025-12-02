@@ -62,7 +62,7 @@ public class WorkoutAndMealTools {
 
 
     @Tool("사용자 식별자로 회원의 최근 식사정보를 조회합니다. memberId는 회원의 고유식별자(id), limit은 최근 N개의 식사정보를 가져올건지의 개수")
-    public List<MealResponseDto> recentMeals(@P("조회할 회원의 식별자(id)") Long memberId,
+    public List<MealResponseDto> recentMealsForAI(@P("조회할 회원의 식별자(id)") Long memberId,
                                              @P("최근 N개의 식사 개수(limit)") int limit){
         Pageable pageable = PageRequest.of(0, limit);
         List<Meal> workouts = mealRepository.findByMemberIdOrderByMealDateDesc(memberId, pageable);

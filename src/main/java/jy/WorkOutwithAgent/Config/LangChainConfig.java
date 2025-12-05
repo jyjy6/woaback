@@ -1,20 +1,19 @@
 package jy.WorkOutwithAgent.Config;
 
 
-import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiEmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.store.embedding.EmbeddingStore;
 import jy.WorkOutwithAgent.AI.AssistantModels.Assistant;
 import jy.WorkOutwithAgent.AI.AssistantModels.RagAssistant;
 import jy.WorkOutwithAgent.AI.AssistantModels.StreamingAssistant;
 import jy.WorkOutwithAgent.AI.Tools.MemberSearchTools;
 import jy.WorkOutwithAgent.AI.Tools.UtilTools;
-import jy.WorkOutwithAgent.AI.Tools.WorkoutAndMealTools;
+import jy.WorkOutwithAgent.AI.Tools.MealTools;
+import jy.WorkOutwithAgent.AI.Tools.WorkoutTools;
 import jy.WorkOutwithAgent.GlobalErrorHandler.GlobalException;
 import jy.WorkOutwithAgent.Redis.RedisChatMemoryStore;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,8 @@ public class LangChainConfig {
      */
     @Bean("assistantWithTools")
     public Assistant assistantWithTools(MemberSearchTools memberSearchTools,
-                                        WorkoutAndMealTools workoutAndMealTools,
+                                        MealTools mealTools,
+                                        WorkoutTools workoutTools,
                                         UtilTools utilTools) {
         if (apiKey == null) {
             throw new GlobalException("GEMINI_API_KEY_ERROR","GEMINI_API_KEY not set in environment variables", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -53,12 +53,12 @@ public class LangChainConfig {
         GoogleAiGeminiChatModel model = GoogleAiGeminiChatModel.builder()
                 .apiKey(apiKey)
                 .modelName("gemini-2.5-flash")
-                .temperature(0.7)
+                .temperature(0.5)
                 .build();
 
         return AiServices.builder(Assistant.class)
                 .chatLanguageModel(model)
-                .tools(memberSearchTools, workoutAndMealTools, utilTools)
+                .tools(memberSearchTools, mealTools, workoutTools, utilTools)
                 .chatMemoryProvider(userId -> MessageWindowChatMemory.builder()
                         .id(userId)
                         .maxMessages(20)
@@ -74,7 +74,8 @@ public class LangChainConfig {
 
     @Bean("assistantWithToolsForAdmin")
     public Assistant assistantWithToolsForAdmin(MemberSearchTools memberSearchTools,
-                                                WorkoutAndMealTools workoutAndMealTools,
+                                                MealTools mealTools,
+                                                WorkoutTools workoutTools,
                                                 UtilTools utilTools) {
         if (apiKey == null) {
             throw new GlobalException("GEMINI_API_KEY_ERROR","GEMINI_API_KEY not set in environment variables", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -83,13 +84,13 @@ public class LangChainConfig {
         RedisChatMemoryStore store = new RedisChatMemoryStore(stringRedisTemplate);
         GoogleAiGeminiChatModel model = GoogleAiGeminiChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gemini-2.5-pro")
-                .temperature(0.7)
+                .modelName("gemini-2.5-flash")
+                .temperature(0.5)
                 .build();
 
         return AiServices.builder(Assistant.class)
                 .chatLanguageModel(model)
-                .tools(workoutAndMealTools, memberSearchTools, utilTools)
+                .tools(mealTools, memberSearchTools, workoutTools, utilTools)
                 .chatMemoryProvider(userId -> MessageWindowChatMemory.builder()
                         .id(userId)
                         .maxMessages(20)
@@ -114,7 +115,7 @@ public class LangChainConfig {
         RedisChatMemoryStore store = new RedisChatMemoryStore(stringRedisTemplate);
         GoogleAiGeminiStreamingChatModel streamingModel = GoogleAiGeminiStreamingChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gemini-2.5-pro")
+                .modelName("gemini-2.5-flash")
                 .temperature(0.7)
                 .build();
 

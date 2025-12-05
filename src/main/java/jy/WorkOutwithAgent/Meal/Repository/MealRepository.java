@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -17,4 +18,6 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
     List<Meal> findTodayMeals(@Param("memberId") Long memberId);
 
     List<Meal> findByMemberIdOrderByMealDateDesc(Long memberId, Pageable pageable);
+
+    List<Meal> findByMember_UsernameAndMealDateBetween(String username, LocalDateTime startOfDay, LocalDateTime endOfDay);
 }

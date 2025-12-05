@@ -33,8 +33,6 @@ public class AdminController {
         String message = request.get("message");
         log.info("Admin chat message from {}: {}", customUserDetails.getUsername(), message);
 
-
-
         return assistantWithToolsForAdmin.chat(customUserDetails.getId(), customUserDetails.getUsername(), message);
     }
 
